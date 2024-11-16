@@ -4,15 +4,19 @@ const db = require("../models/index");
 
 let server, agent;
 
-describe("Todo Test Suite", () => {
+describe("Todo Application", () => {
   beforeAll(async () => {
     await db.sequelize.sync({ force: true });
     server = app.listen(3000, () => {});
     agent = req.agent(server);
   });
-  afterAll(async () => {
-    await db.sequelize.close();
-    server.close();
+    afterAll( async () => {
+        try{
+        await db.sequelize.close();
+        await server.close();
+    }catch ( error ) {
+        console.log(error);
+    }
   });
   test("Resonds with json at /todos", async () => {
     const response = await agent.post("/todos").send({
@@ -43,5 +47,19 @@ describe("Todo Test Suite", () => {
       .send();
     const parsedUpdateResponse = JSON.parse(markAsCompleteResponse.text);
     expect(parsedUpdateResponse.completed).toBe(true);
+  } );
+    
+    test("Delete A Todo", async () => {
+    const response = await agent.post("/todos").send({
+      title: "Buy Milk",
+      dueDate: new Date().toISOString(),
+      completed: false,
+    } );
+        
+    const parsedResponse = JSON.parse(response.text);
+    const todoId = parsedResponse.id;
+
+    const deleteResponse = await agent.delete(`/todos/${todoId}`).send();
+    expect(deleteResponse.statusCode).toBe(200);
   });
 });

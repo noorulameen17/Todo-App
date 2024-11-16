@@ -5,8 +5,13 @@ app.use(bodyParser.json());
 
 const { Todo } = require("./models");
 
-app.get("/todos", (req, res) => {
-  console.log("Todo List");
+app.get("/todos", async (req, res) => {
+  try {
+    const todos = await Todo.findAll(); 
+    res.status(200).json(todos); 
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while fetching todos." });
+  }
 });
 
 app.post("/todos", async (req, res) => {
@@ -36,8 +41,15 @@ app.put("/todos/:id/markAsCompleted", async (req, res) => {
   }
 });
 
-app.delete("/todos/:id", (req, res) => {
+app.delete( '/todos/:id/destroy', async ( req, res ) => {
   console.log("Deleting a todo with ID : ", req.params.id);
+  try {
+    const todoId = req.params.id;
+    const result = await Todo.destroy({ where: { id: todoId } }); 
+    res.status(200).json(result > 0);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while deleting the todo.' });
+  }
 });
 
 module.exports = app;
