@@ -1,9 +1,29 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
-app.use(bodyParser.json());
+app.use( bodyParser.json() );
+const path = require("path");
 
-const { Todo } = require("./models");
+app.set("view engine", "ejs");
+
+
+app.use( express.static(path.join(__dirname, "public" ) ));
+
+
+const { Todo } = require( "./models" );
+
+app.get("/", async (req, res) => {
+  try {
+    const allTodos = await Todo.getTodos();
+    if (req.accepts("html")) {
+      res.render("index", { allTodos });
+    } else {
+      res.json({ allTodos });
+    }
+  } catch (error) {
+    res.status(500).send("An error occurred while fetching todos.");
+  }
+});
 
 app.get("/todos", async (req, res) => {
   try {
